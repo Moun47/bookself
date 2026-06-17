@@ -27,7 +27,10 @@ const appState = {
     // 双击事件检测相关状态
     clickCount: 0, // 点击次数计数
     clickTimer: null, // 点击计时器
-    clickDelay: 250 // 区分单击和双击的时间阈值（毫秒）
+    clickDelay: 250, // 区分单击和双击的时间阈值（毫秒）
+    // 书名悬浮显示相关状态
+    bookTitleTimer: null, // 书名显示的定时器
+    bookTitleHideDelay: 3000 // 书名显示后自动隐藏的延迟（毫秒）
 };
 
 // 获取DOM元素
@@ -37,6 +40,8 @@ const bookTemplate = document.getElementById('bookTemplate');
 const searchBox = document.getElementById('searchBox');
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
+const bookTitleOverlay = document.getElementById('bookTitleOverlay');
+const bookTitleText = document.getElementById('bookTitleText');
 
 // 直接创建folderInput元素，而不是从模板中获取
 const folderInput = document.createElement('input');
@@ -318,6 +323,60 @@ function setupEventListeners() {
             }
         }
     });
+    
+    // 设置鼠标移动事件监听（桌面端）
+    document.addEventListener('mousemove', handleMouseMove);
+    
+    // 设置触摸滑动事件监听（移动端）
+    let touchStartY = 0;
+    document.addEventListener('touchstart', function(e) {
+        touchStartY = e.touches[0].clientY;
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+        const touchCurrentY = e.touches[0].clientY;
+        const touchDiff = Math.abs(touchCurrentY - touchStartY);
+        // 检测到滑动（移动超过10像素视为滑动）
+        if (touchDiff > 10) {
+            showBookTitle();
+            touchStartY = touchCurrentY;
+        }
+    });
+}
+
+// 显示书名悬浮提示
+function showBookTitle() {
+    if (!appState.currentBook || !bookTitleOverlay || !bookTitleText) {
+        return;
+    }
+    
+    // 设置书名文本
+    bookTitleText.textContent = appState.currentBook.fileName;
+    
+    // 清除之前的定时器
+    if (appState.bookTitleTimer) {
+        clearTimeout(appState.bookTitleTimer);
+    }
+    
+    // 显示书名
+    bookTitleOverlay.classList.add('visible');
+    
+    // 设置自动隐藏定时器
+    appState.bookTitleTimer = setTimeout(function() {
+        bookTitleOverlay.classList.remove('visible');
+        appState.bookTitleTimer = null;
+    }, appState.bookTitleHideDelay);
+}
+
+// 处理鼠标移动事件
+function handleMouseMove(e) {
+    // 忽略鼠标在按钮区域的移动
+    const target = e.target;
+    if (target.closest('.book-header') || target.closest('.search-box')) {
+        return;
+    }
+    
+    showBookTitle();
 }
 
 // 选择文件夹
