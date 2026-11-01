@@ -30,7 +30,8 @@ const appState = {
     clickDelay: 250, // 区分单击和双击的时间阈值（毫秒）
     // 书名悬浮显示相关状态
     bookTitleTimer: null, // 书名显示的定时器
-    bookTitleHideDelay: 3000 // 书名显示后自动隐藏的延迟（毫秒）
+    bookTitleHideDelay: 3000, // 书名显示后自动隐藏的延迟（毫秒）
+    bookTitleEnabled: false // 书名悬浮显示功能开关
 };
 
 // 获取DOM元素
@@ -346,6 +347,7 @@ function setupEventListeners() {
 
 // 显示书名悬浮提示
 function showBookTitle() {
+    if (!appState.bookTitleEnabled) return;
     if (!appState.currentBook || !bookTitleOverlay || !bookTitleText) {
         return;
     }
